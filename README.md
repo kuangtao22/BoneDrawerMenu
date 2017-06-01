@@ -1,5 +1,5 @@
 # BoneZoomImage 图片放大器
-![github](https://github.com/kuangtao22/BoneImagePreview/blob/master/%E9%A2%84%E8%A7%88.gif
+![github](https://github.com/kuangtao22/BoneDrawerMenu/blob/master/%E9%A2%84%E8%A7%88.gif
  "github")  
 ## 简介
 BoneDrawerMenu是纯swift写的可自定义底部菜单栏，已经写了第三个了，有写的不好的地方请指正~~~
