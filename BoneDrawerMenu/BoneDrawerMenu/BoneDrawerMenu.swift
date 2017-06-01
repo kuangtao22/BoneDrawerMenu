@@ -239,11 +239,11 @@ extension BoneDrawerMenu: UITableViewDataSource {
                 if cell == nil {
                     cell = BoneDrawerOnlyCell(style: .default, reuseIdentifier: identifier)
                     cell?.title = self.delegate?.drawerMenu(self, title: index)
-                    if let items = self.delegate?.drawerMenu(self, items: index) as? [String] {
-                        cell?.itemArray = items
-                    }
                     cell?.selectColor = self.selectColor
                     cell?.normalColor = self.normalColor
+                }
+                if let items = self.delegate?.drawerMenu(self, items: index) as? [String] {
+                    cell?.itemArray = items
                 }
                 let selectNum = self.delegate?.drawerMenu(self, didSelectItems: index) as? Int
                 cell?.selectNum = selectNum ?? 0
@@ -260,9 +260,9 @@ extension BoneDrawerMenu: UITableViewDataSource {
                     cell?.title = self.delegate?.drawerMenu(self, title: index)
                     cell?.selectColor = self.selectColor
                     cell?.normalColor = self.normalColor
-                    if let items = self.delegate?.drawerMenu(self, items: index) as? [String] {
-                        cell?.itemArray = items
-                    }
+                }
+                if let items = self.delegate?.drawerMenu(self, items: index) as? [String] {
+                    cell?.itemArray = items
                 }
                 let seleIds = self.delegate?.drawerMenu(self, didSelectItems: index) as? [Int]
                 cell?.ids = seleIds ?? [Int]()
