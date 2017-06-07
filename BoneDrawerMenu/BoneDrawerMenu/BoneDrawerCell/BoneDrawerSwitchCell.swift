@@ -17,7 +17,7 @@ class BoneDrawerCell: UITableViewCell {
             return self.switchBtn.isOn
         }
         set {
-            self.switchBtn.setOn(newValue, animated: true)
+            self.switchBtn.setOn(newValue, animated: false)
         }
     }
     

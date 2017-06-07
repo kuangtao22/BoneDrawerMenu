@@ -50,7 +50,7 @@ extension BoneDrawerMenu {
             return self.height
         }
         set {
-            self.height = newValue
+            self.menuView.height = newValue
             self.lineView.top = 0
             self.titleLabel.top = 0
             self.tableView.top = self.titleLabel.bottom
@@ -58,8 +58,15 @@ extension BoneDrawerMenu {
         }
     }
     
-    /// 重置
+    /// 重置TODO
     public func reloadData() {
+        for view in self.menuView.subviews {
+            if let table = view as? UITableView {
+                table.removeFromSuperview()
+            }
+        }
+        self.tableView = self.getTableView()
+        self.menuView.addSubview(self.tableView)
         self.tableView.reloadData()
     }
     
@@ -122,63 +129,86 @@ class BoneDrawerMenu: UIView {
         return closeBtn
     }()
     /// 列表
-    fileprivate lazy var tableView: UITableView = {
+    fileprivate func getTableView() -> UITableView {
         let tableView = UITableView(frame: CGRect(x: 0, y: self.titleLabel.bottom, width: self.width, height: self.height - self.titleLabel.bottom), style: UITableViewStyle.grouped)
         tableView.delegate = self
         tableView.backgroundColor = UIColor.white
         tableView.dataSource = self
         tableView.separatorColor = UIColor(colorLiteralRed: 235/255, green: 235/255, blue: 235/255, alpha: 1)
         return tableView
-    }()
+    }
     
+    fileprivate var tableView: UITableView!
     fileprivate var background: UIView!
+    fileprivate var menuView: UIView!
     
     convenience init() {
-        self.init(frame: CGRect.zero)
-        self.frame = CGRect(x: 0, y: screen_height, width: screen_width, height: 300)
-        self.backgroundColor = UIColor(colorLiteralRed: 250/255, green: 250/255, blue: 250/255, alpha: 1)
-        self.layer.shadowColor = UIColor.black.cgColor //按钮阴影颜色
-        self.layer.shadowOffset = CGSize(width: 0, height: 0) // 按钮阴影偏移量
-        self.layer.shadowOpacity = 0.1 // 阴影的透明度，默认是0   范围 0-1 越大越不透明
-        self.layer.shadowRadius = 2
+        self.init(frame: UIScreen.main.bounds)
+        self.isHidden = true
+        
+        self.background = UIView(frame: self.bounds)
+        self.background.alpha = 0
+        self.background.backgroundColor = UIColor(colorLiteralRed: 0, green: 0, blue: 0, alpha: 0.1)
+        self.addSubview(self.background)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(cloesAction))
+        tapGesture.numberOfTapsRequired = 1
+        self.background.addGestureRecognizer(tapGesture)
+        
+        self.menuView = UIView(frame: CGRect(x: 0, y: self.height, width: self.width, height: 300))
+        self.menuView.backgroundColor = UIColor(colorLiteralRed: 250/255, green: 250/255, blue: 250/255, alpha: 1)
+//        self.menuView.layer.shadowColor = UIColor.black.cgColor //按钮阴影颜色
+//        self.menuView.layer.shadowOffset = CGSize(width: 0, height: 0) // 按钮阴影偏移量
+//        self.menuView.layer.shadowOpacity = 0.1 // 阴影的透明度，默认是0   范围 0-1 越大越不透明
+//        self.menuView.layer.shadowRadius = 2
+        self.addSubview(self.menuView)
         
         self.lineView = UIView(frame: CGRect(x: 0, y: 0, width: self.width, height: 0.5))
-        self.lineView.backgroundColor = UIColor.lightGray
-        self.addSubview(self.lineView)
+        self.lineView.backgroundColor = UIColor(colorLiteralRed: 210/255, green: 210/255, blue: 210/255, alpha: 1)
+        self.menuView.addSubview(self.lineView)
         
         self.titleLabel = UILabel(frame: CGRect(x: 15, y: 0, width: self.width - 30, height: 45))
         self.titleLabel.font = UIFont.systemFont(ofSize: 15)
         self.titleLabel.textColor = UIColor.darkGray
-        self.addSubview(self.titleLabel)
+        self.menuView.addSubview(self.titleLabel)
         
-        self.addSubview(self.closeBtn)
-        self.addSubview(self.cleanBtn)
-        self.addSubview(self.tableView)
+        self.menuView.addSubview(self.closeBtn)
+        self.menuView.addSubview(self.cleanBtn)
+        
+        self.tableView = self.getTableView()
+        self.menuView.addSubview(self.tableView)
+        
         
 //        UIApplication.shared.keyWindow?.addSubview(self)
     }
     
 
-    @objc private func cloesAction() {
+    @objc fileprivate func cloesAction() {
         self.isShow = false
     }
     
     /// 显示动画
     fileprivate func showAnimate() {
+        
         self.isHidden = false
+        self.menuView.isHidden = false
+        self.background.isHidden = false
         UIView.animate(withDuration: self.interval, animations: {
-            self.transform = CGAffineTransform.init(translationX: 0, y: -self.height)
+            self.background.alpha = 1
+            self.menuView.transform = CGAffineTransform(translationX: 0, y: -self.menuView.height)
         }) { (finished) in
             
         }
     }
     
     /// 隐藏动画
-    fileprivate func hideAnimate() {
+    @objc fileprivate func hideAnimate() {
         UIView.animate(withDuration: self.interval, animations: {
-            self.transform = CGAffineTransform.identity
+            self.menuView.transform = CGAffineTransform.identity
+            self.background.alpha = 0
         }) { (finished) in
-//            self.removeFromSuperview()
+            self.menuView.isHidden = true
+            self.background.isHidden = true
             self.isHidden = true
         }
     }
@@ -202,6 +232,7 @@ extension BoneDrawerMenu: UITableViewDelegate {
         if type == .text {
             index.detail = ""
             self.delegate?.drawerMenu(self, didSelectRowAt: index)
+            self.cloesAction()
         }
     }
 }
@@ -241,10 +272,11 @@ extension BoneDrawerMenu: UITableViewDataSource {
                     cell?.title = self.delegate?.drawerMenu(self, title: index)
                     cell?.selectColor = self.selectColor
                     cell?.normalColor = self.normalColor
+                    if let items = self.delegate?.drawerMenu(self, items: index) as? [String] {
+                        cell?.itemArray = items
+                    }
                 }
-                if let items = self.delegate?.drawerMenu(self, items: index) as? [String] {
-                    cell?.itemArray = items
-                }
+                
                 let selectNum = self.delegate?.drawerMenu(self, didSelectItems: index) as? Int
                 cell?.selectNum = selectNum ?? 0
                 cell?.cellback = { id in
@@ -260,10 +292,11 @@ extension BoneDrawerMenu: UITableViewDataSource {
                     cell?.title = self.delegate?.drawerMenu(self, title: index)
                     cell?.selectColor = self.selectColor
                     cell?.normalColor = self.normalColor
+                    if let items = self.delegate?.drawerMenu(self, items: index) as? [String] {
+                        cell?.itemArray = items
+                    }
                 }
-                if let items = self.delegate?.drawerMenu(self, items: index) as? [String] {
-                    cell?.itemArray = items
-                }
+                
                 let seleIds = self.delegate?.drawerMenu(self, didSelectItems: index) as? [Int]
                 cell?.ids = seleIds ?? [Int]()
                 cell?.cellback = { ids in
